@@ -1,0 +1,42 @@
+/* ================= 마우스를 따라오는 캐릭터 ================= */
+
+.cursor-trail {
+  /* 크기를 바꾸려면 이 값만 고치면 됩니다. */
+  --cursor-trail-height: 46px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: var(--cursor-trail-height);
+  width: auto;
+
+  /* 클릭이 그대로 통과합니다. 버튼을 가리지 않습니다. */
+  pointer-events: none;
+
+  /* 로딩창(20000)보다는 아래, 모달(최대 1040)보다는 위입니다. */
+  z-index: 9999;
+
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  will-change: transform;
+  filter: drop-shadow(0 3px 6px rgba(var(--color-mid-shadow-rgb), 0.3));
+}
+
+/* 마우스가 창 밖으로 나가면 사라집니다. */
+.cursor-trail.is-hidden { opacity: 0; }
+
+/*
+ * 마우스가 없는 기기(휴대폰 · 태블릿)에서는 아예 띄우지 않습니다.
+ * 손가락에는 따라올 커서가 없고, 계속 도는 애니메이션이 배터리만 씁니다.
+ */
+@media (hover: none), (pointer: coarse) {
+  .cursor-trail { display: none; }
+}
+
+/*
+ * 운영체제에서 '동작 줄이기'를 켠 분께는 띄우지 않습니다.
+ * 이 효과가 보고 싶으시면 아래 세 줄을 지우세요.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .cursor-trail { display: none; }
+}

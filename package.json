@@ -1,0 +1,10 @@
+{
+  "name": "collige",
+  "private": true,
+  "version": "1.0.0",
+  "description": "두 캐릭터의 대사 · 표정 · 세계관을 모아 두는 웹 앱 (Supabase)",
+  "scripts": {
+    "check:js": "node tools/check-js.mjs",
+    "release": "node tools/bump-version.mjs"
+  }
+}

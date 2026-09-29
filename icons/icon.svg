@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    앱 아이콘. A와 B의 말풍선 두 개가 겹친 모양입니다.
+    배경은 비어 있습니다(투명).
+    색을 바꾸고 싶으면 아래 fill 값을 고친 뒤 icons/build-icons.mjs 를 다시 돌리세요.
+  -->
+  <!-- B 말풍선 (뒤) -->
+  <g transform="translate(272 176)">
+    <rect x="0" y="0" width="196" height="132" rx="40" fill="#9ca3af"/>
+    <path d="M150 128 L176 178 L112 132 Z" fill="#9ca3af"/>
+  </g>
+
+  <!-- A 말풍선 (앞) -->
+  <g transform="translate(46 132)">
+    <rect x="0" y="0" width="238" height="160" rx="48" fill="#6b7280"/>
+    <path d="M62 156 L40 212 L118 160 Z" fill="#6b7280"/>
+    <circle cx="74" cy="80" r="17" fill="#ffffff"/>
+    <circle cx="128" cy="80" r="17" fill="#ffffff"/>
+    <circle cx="182" cy="80" r="17" fill="#ffffff"/>
+  </g>
+</svg>

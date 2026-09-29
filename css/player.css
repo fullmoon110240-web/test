@@ -1,0 +1,227 @@
+/* ================= 오른쪽 위 음악 재생바 ================= */
+
+.music-player {
+  /* 여기 네 값만 고치면 위치와 크기가 바뀝니다. */
+  --player-top: 14px;
+
+  /* 오른쪽 끝에서 얼마나 떨어질지. 키울수록 왼쪽으로 옵니다. */
+  --player-right: 46px;
+  --player-width: 230px;
+  --player-accent: var(--color-a);
+
+  /* 아이콘 크기와 줄 간격. 만든 사람 이름을 막대 끝에 맞출 때도 씁니다. */
+  --btn-size: 20px;
+  --row-gap: 8px;
+
+  position: fixed;
+  top: var(--player-top);
+  right: var(--player-right);
+
+  /* 모달(최대 1040)보다는 아래, 본문보다는 위입니다. */
+  z-index: 900;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+
+  color: #8a93a0;
+  user-select: none;
+}
+
+/*
+ * 노래를 끝내 못 불러왔을 때 js/modules/player.js 가 hidden 을 붙입니다.
+ * display: flex 가 hidden 을 덮어쓰므로 여기서 한 번 더 눌러 줘야 실제로 숨습니다.
+ * (세계관 바도 같은 이유로 .worldview-bar[hidden] 을 두고 있습니다)
+ */
+.music-player[hidden] { display: none; }
+
+.music-row {
+  display: flex;
+  align-items: center;
+  gap: var(--row-gap);
+  width: var(--player-width);
+}
+
+/* ---------------- 재생 / 멈춤 ---------------- */
+
+.music-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--btn-size);
+  height: var(--btn-size);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.music-btn:hover { color: var(--player-accent); }
+
+.music-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* 재생 중에는 아이콘이 바뀝니다. */
+.music-btn .icon-pause,
+.music-player.is-playing .music-btn .icon-play { display: none; }
+.music-player.is-playing .music-btn .icon-pause { display: block; }
+
+.music-mute .icon-muted,
+.music-player.is-muted .music-mute .icon-loud { display: none; }
+.music-player.is-muted .music-mute .icon-muted { display: block; }
+
+/* ---------------- 진행 막대 ---------------- */
+
+.music-progress {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(var(--color-a-rgb), 0.18);
+  cursor: pointer;
+
+  /* 4px짜리 막대는 누르기 어려우므로 위아래로 눌리는 범위를 넓힙니다. */
+  position: relative;
+}
+
+.music-progress::before {
+  content: '';
+  position: absolute;
+  inset: -9px 0;
+}
+
+.music-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--player-accent);
+  pointer-events: none;
+}
+
+/* ---------------- 음량 ---------------- */
+
+.music-volume {
+  /*
+   * 음량 막대의 길이와, 스피커와의 간격. 이 둘만 고치면 됩니다.
+   * 마우스를 올렸을 때만 잠깐 나오므로 아래 표기를 가려도 괜찮습니다.
+   */
+  --volume-length: 78px;
+  --volume-gap: 10px;
+
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * 음량 막대는 스피커 '아래쪽'으로 세워서 펼쳐집니다.
+ * 평소에는 감춰 두고, 스피커에 마우스를 올리면 나타납니다.
+ *
+ * 칸은 스피커 바로 아래(top: 100%)에서 시작해 막대까지 덮습니다.
+ * 칸이 막대에서 떨어져 있으면, 마우스가 내려가는 도중에 벗어나 사라집니다.
+ */
+.music-volume-panel {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+
+  width: 26px;
+  height: calc(var(--volume-gap) + var(--volume-length));
+
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.music-volume:hover .music-volume-panel,
+.music-volume:focus-within .music-volume-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+/*
+ * 가로 막대를 반시계로 90도 돌려 세웁니다.
+ * 그러면 원래 왼쪽 끝(0)이 아래로, 오른쪽 끝(1)이 위로 갑니다.
+ * 즉 아래가 0%, 위가 100% 입니다.
+ *
+ * 세로 전용 속성(orient="vertical", writing-mode)은 쓰지 않습니다.
+ * 브라우저마다 방향이 달라지고, 회전과 겹치면 도로 눕습니다.
+ */
+.music-volume-slider {
+  /*
+   * 칸 한가운데에 직접 갖다 놓습니다.
+   * 돌리기 전의 가로 막대가 칸보다 길어서, grid/flex 가운데 정렬에
+   * 맡기면 브라우저가 한쪽 끝으로 밀어 버립니다.
+   */
+  position: absolute;
+  left: 50%;
+  top: calc(var(--volume-gap) + var(--volume-length) / 2);
+  margin-left: calc(var(--volume-length) / -2);
+  margin-top: -2px;                       /* 높이 4px의 절반 */
+
+  width: var(--volume-length);            /* 돌리기 전의 길이 = 돌린 뒤의 높이 */
+  height: 4px;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 999px;
+  background: rgba(var(--color-a-rgb), 0.18);
+  cursor: pointer;
+  transform: rotate(-90deg);
+}
+
+/*
+ * 아래 두 덩어리는 내용이 같지만 한 줄로 합치면 안 됩니다.
+ * 선택자를 쉼표로 묶으면, 브라우저가 자기가 모르는 쪽을 만났을 때
+ * 덩어리를 통째로 버려서 양쪽 다 적용되지 않습니다.
+ */
+.music-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: var(--player-accent);
+  cursor: pointer;
+}
+
+.music-volume-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: var(--player-accent);
+  cursor: pointer;
+}
+
+/* ---------------- 만든 사람 ---------------- */
+
+/*
+ * 오른쪽 끝을 '진행 막대의 끝'에 맞춥니다.
+ * 스피커 한 칸과 그 앞 간격만큼 왼쪽으로 들어갑니다.
+ */
+.music-artist {
+  margin-right: calc(var(--btn-size) + var(--row-gap));
+  font-size: 11px;
+  letter-spacing: 0.2px;
+  color: #a6aeb9;
+}
+
+/* 좁은 화면에서는 막대를 줄입니다. */
+@media (max-width: 560px) {
+  .music-player {
+    --player-top: 10px;
+    --player-right: 20px;
+    --player-width: 150px;
+  }
+}

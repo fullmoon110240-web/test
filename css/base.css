@@ -1,0 +1,213 @@
+/*
+ * 컬러.
+ *
+ * A · B 컬러는 화면의 [설정]에서 고르고, js/settings.js 가 아래 변수를 덮어씁니다.
+ * 여기 적힌 값은 아직 아무 색도 고르지 않았을 때의 회색입니다.
+ *
+ *   --color-a             고른 색 그대로 (버튼 바탕 등)
+ *   --color-a-text        흰 바탕 위 글자용 (너무 연한 색은 읽힐 만큼 어둡게)
+ *   --color-a-on          그 색 바탕 위에 올리는 글자색
+ *   --color-a-soft        아주 연한 바탕색
+ *   --color-a-rgb         투명도를 줄 때 쓰는 r, g, b
+ *   --color-a-shadow-rgb  그림자용으로 어둡게 한 r, g, b
+ *
+ * --color-mid 는 A와 B의 중간색입니다. (세계관 바처럼 어느 한쪽 것이 아닌 곳)
+ */
+:root {
+  --color-a: #6b7280;
+  --color-a-text: #6b7280;
+  --color-a-on: #ffffff;
+  --color-a-soft: #f0f1f2;
+  --color-a-rgb: 107, 114, 128;
+  --color-a-shadow-rgb: 70, 74, 83;
+
+  --color-b: #6b7280;
+  --color-b-text: #6b7280;
+  --color-b-on: #ffffff;
+  --color-b-soft: #f0f1f2;
+  --color-b-rgb: 107, 114, 128;
+  --color-b-shadow-rgb: 70, 74, 83;
+
+  --color-mid: #6b7280;
+  --color-mid-text: #6b7280;
+  --color-mid-on: #ffffff;
+  --color-mid-soft: #f0f1f2;
+  --color-mid-rgb: 107, 114, 128;
+  --color-mid-shadow-rgb: 70, 74, 83;
+
+  /* 모달 안 단추 · 목록 색. 캐릭터별 모달은 css/modals.css 에서 B 로 바꿉니다. */
+  --theme: var(--color-a);
+  --theme-text: var(--color-a-text);
+  --theme-on: var(--color-a-on);
+  --theme-soft: var(--color-a-soft);
+  --theme-rgb: var(--color-a-rgb);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: transparent;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  color: #333;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.layout-stage {
+  /*
+   * 화면 전체가 이 '무대' 하나입니다. 창 크기가 바뀌면 통째로 비례해 커지고 줄어듭니다.
+   *
+   *   aspect-ratio  - 무대 자체의 비율. 960px 일 때 내용 높이와 거의 같습니다.
+   *   96vh * 1.2    - 창이 납작할 때 무대를 줄여서 아래가 잘리지 않게 하는 한계
+   *
+   * 뒤 숫자가 더 작은 이유: 글자 크기 같은 것들은 clamp 로 최소값이 있어서,
+   * 화면이 작아질수록 내용이 상대적으로 세로로 길어집니다(1.34 -> 1.20).
+   * 잘리지 않으려면 가장 길어졌을 때의 비율을 써야 합니다.
+   */
+  width: min(96vw, calc(96vh * 1.2), 960px);
+  aspect-ratio: 1.34 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+/*
+ * 아주 납작한 창(세로 420px 이하)에서는 글자 최소 크기 때문에
+ * 내용이 상대적으로 더 길어져서, 위의 1.2 로도 위아래가 조금 잘립니다.
+ * 그런 창에서만 무대를 조금 더 줄입니다. 평소 크기에는 영향이 없습니다.
+ */
+@media (max-height: 420px) {
+  .layout-stage { width: min(96vw, calc(96vh * 1.08), 960px); }
+}
+
+.shimeji-section {
+  width: 100%;
+  display: grid;
+  /*
+   * 가운데(말풍선) 칸을 크게 줄이고 양옆 캐릭터 칸을 키웠습니다.
+   * 칸이 넓어지면 아래 aspect-ratio 때문에 캐릭터 칸의 높이도 같이 커집니다.
+   */
+  grid-template-columns: 42% 16% 42%;
+  /*
+   * 세계관 바와 캐릭터 사이의 틈입니다.
+   * 바 쪽에 margin 으로 주면 cqw 가 창 너비 기준이라 무대와 따로 놀아서,
+   * 여기에 무대 너비의 % 로 둡니다. 안쪽 여백이라 캐릭터 칸 높이에는
+   * 끼어들지 않으므로 말풍선 위치(%)도 그대로입니다.
+   */
+  column-gap: 0;
+  align-items: end;
+  position: relative;
+  margin: 0;
+  padding: 3.5% 0 3%;
+  background: transparent;
+  box-shadow: none;
+  container-type: inline-size;
+  flex: 0 0 auto;
+}
+
+.item-container {
+  width: 100%;
+  align-self: center;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(247, 247, 248, 0.96);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.loading-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-card {
+  min-width: 170px;
+  max-width: 240px;
+  padding: 24px 22px 20px;
+  border: 1px solid rgba(107, 114, 128, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 30px rgba(40, 44, 52, 0.14);
+  color: #6b7280;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 12px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #6b7280;
+  border-right-color: #9ca3af;
+  border-radius: 50%;
+  animation: loadingSpin 0.85s linear infinite;
+}
+
+.loading-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.loading-message {
+  margin-top: 6px;
+  color: #7a7f87;
+  font-size: 11px;
+  line-height: 1.45;
+  word-break: keep-all;
+  white-space: pre-line;
+}
+
+@keyframes loadingSpin {
+  to { transform: rotate(360deg); }
+}

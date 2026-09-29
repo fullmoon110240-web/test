@@ -1,0 +1,314 @@
+/*
+ * 세계관 버튼 바.
+ * 기존 base/characters/modals.css는 건드리지 않고 여기서만 추가합니다.
+ * A 컬러와 B 컬러의 중간색(--color-mid)을 써서
+ * 어느 한쪽 캐릭터에 치우치지 않게 했습니다.
+ */
+
+/*
+ * 한 화면에 캡슐 버튼 4칸이 보입니다.
+ * cqw는 이 바의 너비를 기준으로 합니다.
+ */
+/* ---- 바 위의 '세계관 목록 | 표정 목록' ---- */
+
+.stage-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: clamp(4px, 1.4cqw, 12px);
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.stage-link {
+  padding: 2px 2px;
+  border: none;
+  background: none;
+  color: #8a93a0;
+  font-size: clamp(11px, 1.35cqw, 15px);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+
+  /* 밑줄은 글자에만 닿게. 자리를 차지하지 않아 줄이 흔들리지 않습니다. */
+  text-decoration: underline 1.5px transparent;
+  text-underline-offset: 4px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.stage-link:hover,
+.stage-link:focus-visible {
+  color: var(--color-mid-text);
+  text-decoration-color: currentColor;
+  outline: none;
+}
+
+.stage-link-sep {
+  color: #cfd5dd;
+  font-size: clamp(10px, 1.2cqw, 13px);
+}
+
+.worldview-bar {
+  /*
+   * 63.75% -> 74%.
+   * ≡ 를 글자 링크로 빼면서 바가 통째로 뷰포트가 되었고,
+   * 버튼을 한 단계 키웠습니다. (가로·높이·글자 모두 약 1.22배)
+   *
+   * 아래 cqw 계수는 이 너비를 기준으로 합니다.
+   * 너비를 바꾸면 계수와 clamp 의 위아래 한계도 같이 봐야 합니다.
+   */
+  width: 74%;
+  margin-inline: auto;
+  margin-bottom: clamp(4px, 2.1cqw, 13px);
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 1.6cqw, 12px);
+  flex: 0 0 auto;
+  min-width: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  z-index: 5;
+}
+
+/* display:flex가 hidden 속성을 덮어쓰지 않도록 합니다. */
+.worldview-bar[hidden] { display: none; }
+
+.worldview-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-block: clamp(4px, 1.122cqw, 12px);
+  overflow: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.worldview-viewport::-webkit-scrollbar { display: none; }
+
+.worldview-viewport.is-scrollable {
+  overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x;
+  cursor: grab;
+}
+
+.worldview-viewport.is-dragging { cursor: grabbing; }
+
+.worldview-track {
+  display: flex;
+  width: 100%;
+}
+
+/*
+ * 20% = 칸 다섯 개가 보이는 폭.
+ * 평소에는 오른쪽에서 왼쪽으로 천천히 흐르고,
+ * 가운데에 가까운 버튼일수록 커집니다. (js/modules/worldview.js)
+ */
+.worldview-slot {
+  flex: 0 0 20%;
+  min-width: 0;
+  padding: 0 clamp(1px, 0.64cqw, 7px);
+
+  /*
+   * 가운데에 가까울수록 커집니다. 값은 js/modules/worldview.js 가 매 프레임 넣습니다.
+   * 버튼이 아니라 칸에 거는 이유는, 버튼의 hover 효과(translateY)와
+   * 서로 덮어쓰지 않게 하기 위해서입니다.
+   * transition 을 걸면 매 프레임 값이 바뀌는 동안 계속 뒤따라오며 흐릿해집니다.
+   */
+  transform: scale(var(--flow-scale, 1));
+  will-change: transform;
+}
+
+/*
+ * 캡슐형. 높이를 min-height가 아니라 height로 고정해서,
+ * 이름이 길어 두 줄이 되어도 바 높이가 변하지 않습니다.
+ * (바 높이가 변하면 아래 캐릭터 영역까지 밀립니다)
+ */
+.worldview-btn {
+  width: 100%;
+  min-width: 0;
+  height: clamp(28px, 7.18cqw, 54px);
+  padding: clamp(2px, 0.72cqw, 7px) clamp(5px, 1.44cqw, 15px);
+  border: 1px solid rgba(var(--color-mid-rgb), 0.14);
+  border-radius: 999px;
+  background: rgba(240, 242, 245, 0.92);
+  color: #98a2b0;
+  font-size: clamp(11px, 3.097cqw, 23px);
+  font-weight: 700;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(var(--color-mid-shadow-rgb), 0.1);
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* 박스가 높아진 만큼 긴 이름은 두 줄까지 들어갑니다. */
+.worldview-btn-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.worldview-btn:hover:not(:disabled) {
+  background: #ffffff;
+  color: #6b7888;
+  transform: translateY(-1px);
+}
+
+.worldview-btn:focus-visible:not(:disabled) {
+  outline: none;
+  transform: translateY(-1px);
+  border-color: var(--color-mid);
+}
+
+.worldview-btn.is-active {
+  background: var(--color-mid);
+  border-color: var(--color-mid);
+  color: var(--color-mid-on);
+  box-shadow: 0 3px 9px rgba(var(--color-mid-shadow-rgb), 0.22);
+}
+
+/*
+ * 고른 버튼은 마우스를 올려도 고른 모습 그대로입니다.
+ * 아래 :hover 규칙이 더 구체적이라, 이게 없으면 고른 버튼에 마우스를 올린 동안
+ * 안 고른 것처럼 하얗게 보입니다. 고르면 가운데(=커서 자리)로 오기 때문에 특히 잘 보입니다.
+ */
+.worldview-btn.is-active:hover:not(:disabled) {
+  background: var(--color-mid);
+  color: var(--color-mid-on);
+}
+
+/* 이름이 비어 있는 자리 = 비활성 */
+.worldview-btn.is-empty {
+  background: transparent;
+  border-style: dashed;
+  border-color: rgba(var(--color-mid-rgb), 0.3);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* supabase/schema.sql의 세계관 표가 없는 상태 */
+.worldview-bar.is-unavailable .worldview-btn.is-empty { opacity: 0.55; }
+
+/* ---- 세계관 모달 ---- */
+/* 겹침 순서는 css/modals.css 한 곳에서 관리합니다. */
+
+/* 한 줄의 기본 생김새는 .expression-item 과 함께 css/modals.css 에 있습니다. */
+
+.worldview-row.is-active {
+  background: var(--color-mid-soft);
+  box-shadow: inset 2px 0 0 var(--color-mid);
+}
+
+.worldview-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #333;
+}
+
+.worldview-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/*
+ * 평소에는 테두리와 글자에만 색이 있고 배경은 비어 있습니다.
+ * 마우스를 올리면 예전처럼 색이 꽉 찹니다.
+ */
+.worldview-action-btn {
+  border: 1px solid var(--color-mid-text);
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  background-color: transparent;
+  color: var(--color-mid-text);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.worldview-action-btn:hover {
+  background-color: var(--color-mid);
+  border-color: var(--color-mid);
+  color: var(--color-mid-on);
+}
+
+.worldview-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #555;
+}
+
+/* 세계관 모달은 캐릭터 색이 아니라 중간색(--color-mid)을 씁니다. */
+#worldview-edit-modal .modal-input-box button {
+  background: var(--color-mid);
+  color: var(--color-mid-on);
+}
+
+#worldview-edit-modal .modal-input-box input:focus {
+  border-color: var(--color-mid-text);
+}
+
+/* ---- 세계관 목록 안의 '추가' 줄 ---- */
+
+.worldview-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 2px 4px;
+}
+
+.worldview-add-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid #dfe4ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #333;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.worldview-add-row input::placeholder {
+  color: #b3bac3;
+}
+
+.worldview-add-row input:focus {
+  border-color: var(--color-mid-text);
+}
+
+.worldview-add-row button {
+  flex: none;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-mid);
+  color: var(--color-mid-on);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.worldview-add-row button:hover { filter: brightness(1.08); }

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>대사 출력기</title>
+
+  <!-- 앱으로 설치하기 (홈 화면 · 작업 표시줄) -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#6b7280">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="대사 출력기">
+
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/characters.css">
+  <link rel="stylesheet" href="./css/modals.css">
+  <link rel="stylesheet" href="./css/worldview.css">
+  <link rel="stylesheet" href="./css/cursor.css">
+  <link rel="stylesheet" href="./css/player.css">
+  <link rel="stylesheet" href="./css/update.css">
+  <link rel="stylesheet" href="./css/ontop.css">
+  <link rel="stylesheet" href="./css/controls.css">
+  <link rel="stylesheet" href="./css/settings.css">
+</head>
+<body>
+  <div id="loading-overlay" class="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-card">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <div class="loading-title">불러오는 중...</div>
+      <div id="loading-message" class="loading-message">잠시만 기다려 주세요</div>
+    </div>
+  </div>
+
+  <script>
+    // '항상 위에 띄운 작은 창' 안이면 표시를 미리 붙입니다.
+    // 그려지기 전에 붙여야 음악바가 한 번 깜빡였다 사라지지 않습니다.
+    if (new URLSearchParams(location.search).has('pip')) {
+      document.documentElement.classList.add('is-embedded');
+    }
+  </script>
+
+  <script>
+    // 모듈 로딩이 실패하면 boot()이 실행되지 않아 로딩창이 그대로 남습니다.
+    // 그 경우 원인을 로딩창에 그대로 띄웁니다.
+    (function () {
+      var message = document.getElementById('loading-message');
+      var initial = message ? message.textContent : '';
+
+      function report(text) {
+        console.error('[boot]', text);
+        if (message) message.textContent = text;
+      }
+
+      window.addEventListener('error', function (event) {
+        if (event.target && event.target.tagName === 'SCRIPT') {
+          report('스크립트를 불러오지 못했습니다: ' + (event.target.src || ''));
+        } else if (event.message) {
+          report(event.message);
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function (event) {
+        var reason = event.reason;
+        report(String((reason && reason.message) || reason || '알 수 없는 오류'));
+      });
+
+      setTimeout(function () {
+        var overlay = document.getElementById('loading-overlay');
+        if (!overlay || overlay.classList.contains('is-hidden')) return;
+        if (message && message.textContent === initial) {
+          report('불러오기가 끝나지 않았습니다. Ctrl+Shift+R 로 강력 새로고침해 보시고, 그래도 같으면 F12 콘솔의 빨간 오류를 확인해 주세요.');
+        }
+      }, 10000);
+    })();
+  </script>
+
+  <!--
+    마우스를 따라오는 캐릭터.
+    적힌 순서대로 줄을 섭니다. 첫 번째가 커서를, 두 번째가 첫 번째를 따라갑니다.
+    그림은 [설정 → 기타]에서 넣습니다. 넣지 않으면 보이지 않습니다. (js/modules/cursor.js)
+  -->
+  <img class="cursor-trail is-hidden" data-cursor-for="char-a" alt="" aria-hidden="true">
+  <img class="cursor-trail is-hidden" data-cursor-for="char-b" alt="" aria-hidden="true">
+
+  <!--
+    오른쪽 위 음악 재생바.
+    노래 주소와 표기는 [설정 → 기타 → 배경 음악]에서 넣습니다. 넣기 전에는 보이지 않습니다.
+    위치와 크기는 css/player.css 맨 위 네 값으로 조절합니다.
+  -->
+  <div class="music-player" id="music-player" hidden>
+    <div class="music-row">
+      <button class="music-btn music-play" id="music-play" type="button" aria-label="재생">
+        <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+      </button>
+
+      <div class="music-progress" id="music-progress" role="slider"
+           aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="music-fill" id="music-fill"></div>
+      </div>
+
+      <div class="music-volume">
+        <!-- 스피커 아래로 세워서 펼쳐집니다. 아래가 0%, 위가 100%. -->
+        <div class="music-volume-panel">
+          <input type="range" class="music-volume-slider" id="music-volume-slider"
+                 min="0" max="1" step="0.01" value="1"
+                 aria-label="음량" aria-orientation="vertical">
+        </div>
+
+        <button class="music-btn music-mute" id="music-mute" type="button" aria-label="음소거">
+          <svg class="icon-loud" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3v2a7 7 0 0 1 0 14v2a9 9 0 0 0 0-18z"/></svg>
+          <svg class="icon-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm18.5-.5L20 7l-2.5 2.5L15 7l-1.5 1.5L16 11l-2.5 2.5L15 15l2.5-2.5L20 15l1.5-1.5L19 11z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="music-artist"></div>
+  </div>
+
+  <!--
+    왼쪽 위 단추들. 압정은 js/modules/ontop.js 가 이 칸 맨 앞에 끼워 넣습니다.
+    (크롬·엣지가 아니면 압정이 없어서, 그때는 효과음부터 시작합니다)
+  -->
+  <div class="top-controls" id="top-controls">
+    <button type="button" class="switch is-on" id="sfx-toggle" role="switch" aria-checked="true">
+      <span class="switch-label">효과음</span>
+      <span class="switch-track"><span class="switch-knob"></span></span>
+    </button>
+
+    <button type="button" class="switch" id="auto-toggle" role="switch" aria-checked="false"
+            title="켜면 누르지 않아도 캐릭터가 알아서 말합니다">
+      <span class="switch-label">AUTO</span>
+      <span class="switch-track"><span class="switch-knob"></span></span>
+    </button>
+  </div>
+
+  <main class="app-shell">
+    <div class="layout-stage">
+      <!-- 예전에는 ≡ 아이콘이었습니다. 글자 두 개만 남겼습니다. -->
+      <nav class="stage-links" aria-label="목록 열기">
+        <button id="worldview-list-btn" class="stage-link" type="button">세계관 목록</button>
+        <span class="stage-link-sep" aria-hidden="true">|</span>
+        <button id="expression-manage-btn" class="stage-link" type="button">표정 목록</button>
+        <span class="stage-link-sep" aria-hidden="true">|</span>
+        <button id="settings-open-btn" class="stage-link" type="button">설정</button>
+      </nav>
+
+      <section class="worldview-bar" id="worldview-bar" aria-label="세계관">
+        <div class="worldview-viewport" id="worldview-viewport">
+          <div class="worldview-track" id="worldview-track"></div>
+        </div>
+      </section>
+
+      <section class="shimeji-section" aria-label="캐릭터">
+      <!--
+        캐릭터 A / B. 두 칸은 크기와 위치가 똑같습니다.
+        기본 이미지가 없으면 점선 빈 칸이 보이고, 누르면 이미지를 넣는 창이 열립니다.
+      -->
+      <div id="card-a" class="character-side-card" data-character="char-a">
+        <div id="avatar-a" class="shimeji-avatar is-empty" title="A" role="button" tabindex="0" aria-label="A">
+          <img id="img-a" alt="A">
+          <span class="avatar-placeholder" aria-hidden="true">
+            <span class="avatar-placeholder-plus">+</span>
+            <span class="avatar-placeholder-label">A 이미지 넣기</span>
+          </span>
+        </div>
+        <div class="card-btn-group">
+          <button id="list-btn-a" class="action-icon-btn" type="button" aria-label="A 대사 목록">≡</button>
+          <button id="btn-a" class="action-icon-btn" type="button" title="대사 추가" aria-label="A 대사 추가">+</button>
+        </div>
+      </div>
+
+      <div class="speech-bubble-container">
+        <div id="initial-guide-bubble" class="guide-bubble">캐릭터와 ≡ + 를<br>클릭해보세요.<br><br>아이템은<br>클릭과 드래그를<br>할 수 있습니다.</div>
+        <div class="speech-bubble-wrapper">
+          <div id="bubble-a" class="speech-bubble-box"></div>
+        </div>
+        <div class="speech-bubble-wrapper">
+          <div id="bubble-b" class="speech-bubble-box"></div>
+        </div>
+      </div>
+
+      <div id="card-b" class="character-side-card" data-character="char-b">
+        <div id="avatar-b" class="shimeji-avatar is-empty" title="B" role="button" tabindex="0" aria-label="B">
+          <img id="img-b" alt="B">
+          <span class="avatar-placeholder" aria-hidden="true">
+            <span class="avatar-placeholder-plus">+</span>
+            <span class="avatar-placeholder-label">B 이미지 넣기</span>
+          </span>
+        </div>
+        <div class="card-btn-group">
+          <button id="list-btn-b" class="action-icon-btn" type="button" aria-label="B 대사 목록">≡</button>
+          <button id="btn-b" class="action-icon-btn" type="button" title="대사 추가" aria-label="B 대사 추가">+</button>
+        </div>
+      </div>
+    </section>
+
+      <!-- 아이템 네 칸. 빈 칸을 누르면 이미지 · 이름 · 설명을 넣습니다. -->
+      <section class="item-container" id="item-container" aria-label="아이템">
+      <button class="item-btn is-empty" type="button" data-item-id="item-1" title="빈 아이템 칸 1" aria-label="빈 아이템 칸 1">
+        <img alt=""><span class="item-placeholder" aria-hidden="true">+</span>
+      </button>
+      <button class="item-btn is-empty" type="button" data-item-id="item-2" title="빈 아이템 칸 2" aria-label="빈 아이템 칸 2">
+        <img alt=""><span class="item-placeholder" aria-hidden="true">+</span>
+      </button>
+      <button class="item-btn is-empty" type="button" data-item-id="item-3" title="빈 아이템 칸 3" aria-label="빈 아이템 칸 3">
+        <img alt=""><span class="item-placeholder" aria-hidden="true">+</span>
+      </button>
+      <button class="item-btn is-empty" type="button" data-item-id="item-4" title="빈 아이템 칸 4" aria-label="빈 아이템 칸 4">
+        <img alt=""><span class="item-placeholder" aria-hidden="true">+</span>
+      </button>
+      </section>
+    </div>
+  </main>
+
+  <div id="quote-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <span id="modal-title">≡</span>
+        <button id="modal-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="quote-toolbar">
+        <select id="quote-item-filter" class="quote-sort-select" aria-label="아이템으로 거르기"></select>
+        <select id="quote-expression-filter" class="quote-sort-select" aria-label="표정으로 거르기"></select>
+        <select id="quote-sort-select" class="quote-sort-select" aria-label="정렬 순서">
+          <option value="oldest">오래된순</option>
+          <option value="newest">가까운순</option>
+          <option value="name">가나다순</option>
+        </select>
+      </div>
+      <ul id="modal-quote-list" class="modal-body"></ul>
+    </div>
+  </div>
+
+  <div id="quote-add-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-short" role="dialog" aria-modal="true" aria-labelledby="quote-add-modal-title">
+      <div class="modal-header">
+        <span id="quote-add-modal-title">대사 추가</span>
+        <button id="quote-add-modal-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-input-box">
+        <input type="text" id="quote-add-input" placeholder="추가할 대사를 입력하세요" autocomplete="off">
+        <div class="quote-edit-tags">
+          <span class="quote-edit-tag">
+            <span class="quote-edit-tag-label">아이템:</span>
+            <button id="quote-add-item-btn" class="quote-tag-btn default-tag" type="button">기본</button>
+          </span>
+          <span class="quote-edit-tag">
+            <span class="quote-edit-tag-label">표정:</span>
+            <button id="quote-add-expression-btn" class="quote-tag-btn default-tag" type="button">기본</button>
+          </span>
+          <span class="quote-edit-tag" id="quote-add-worldview-wrap">
+            <span class="quote-edit-tag-label">세계관:</span>
+            <button id="quote-add-worldview-btn" class="quote-tag-btn default-tag" type="button">미분류</button>
+          </span>
+        </div>
+        <button id="quote-add-submit-btn" type="button">등록</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quote-edit-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-edit" role="dialog" aria-modal="true" aria-labelledby="quote-edit-modal-title">
+      <div class="modal-header">
+        <span id="quote-edit-modal-title">대사 수정</span>
+        <button id="quote-edit-modal-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-input-box">
+        <input type="text" id="quote-edit-input" placeholder="수정할 대사를 입력하세요" autocomplete="off">
+        <div class="quote-edit-tags">
+          <span class="quote-edit-tag">
+            <span class="quote-edit-tag-label">아이템:</span>
+            <button id="quote-edit-item-btn" class="quote-tag-btn default-tag" type="button">기본</button>
+          </span>
+          <span class="quote-edit-tag">
+            <span class="quote-edit-tag-label">표정:</span>
+            <button id="quote-edit-expression-btn" class="quote-tag-btn default-tag" type="button">기본</button>
+          </span>
+          <span class="quote-edit-tag" id="quote-edit-worldview-wrap">
+            <span class="quote-edit-tag-label">세계관:</span>
+            <button id="quote-edit-worldview-btn" class="quote-tag-btn default-tag" type="button">미분류</button>
+          </span>
+        </div>
+        <button id="quote-edit-submit-btn" type="button">수정</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="expression-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="expression-modal-title">
+      <div class="modal-header">
+        <span id="expression-modal-title">표정 목록 관리</span>
+        <div class="modal-header-btns">
+          <button id="expression-character-a-btn" class="character-tab-btn" type="button" data-character-id="char-a">A</button>
+          <button id="expression-character-b-btn" class="character-tab-btn" type="button" data-character-id="char-b">B</button>
+          <button id="expression-modal-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+        </div>
+      </div>
+      <div class="expression-input-box">
+        <input type="text" id="exp-name-input" placeholder="표정 이름 (예: 웃음)" autocomplete="off">
+        <input type="url" id="exp-url-input" placeholder="이미지 URL 링크" autocomplete="off">
+        <button id="add-expression-btn" type="button">등록</button>
+      </div>
+      <ul id="expression-list" class="modal-body"></ul>
+    </div>
+  </div>
+
+  <div id="expression-edit-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-short" role="dialog" aria-modal="true" aria-labelledby="expression-edit-modal-title">
+      <div class="modal-header">
+        <span id="expression-edit-modal-title">표정 정보 수정</span>
+        <button id="exp-edit-modal-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-input-box">
+        <input type="text" id="exp-edit-name-input" placeholder="표정 이름" autocomplete="off">
+        <input type="url" id="exp-edit-url-input" placeholder="이미지 URL 링크" autocomplete="off">
+        <button id="exp-edit-submit-btn" type="button">수정</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="expression-select-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-select" role="dialog" aria-modal="true" aria-labelledby="expression-select-title">
+      <div class="modal-header">
+        <span id="expression-select-title">표정 선택</span>
+        <button id="exp-select-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <ul id="expression-select-list" class="modal-body"></ul>
+    </div>
+  </div>
+
+  <div id="worldview-select-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-select" role="dialog" aria-modal="true" aria-labelledby="worldview-select-title">
+      <div class="modal-header">
+        <span id="worldview-select-title">세계관 선택</span>
+        <button id="worldview-select-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <ul id="worldview-select-list" class="modal-body"></ul>
+    </div>
+  </div>
+
+  <div id="item-detail-modal" class="modal-overlay" data-character="mid" aria-hidden="true">
+    <div class="modal-card modal-card-item" role="dialog" aria-modal="true" aria-labelledby="item-detail-modal-title">
+      <div class="modal-header">
+        <span id="item-detail-modal-title">아이템 정보</span>
+        <div class="modal-header-btns">
+          <button id="item-detail-edit-btn" class="quote-action-btn" type="button">수정</button>
+          <button id="item-detail-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+        </div>
+      </div>
+      <div class="item-modal-content">
+        <img id="item-detail-img" class="item-modal-img" alt="아이템">
+        <div id="item-detail-name" class="item-modal-name"></div>
+        <div id="item-detail-desc" class="item-modal-desc"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="item-select-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-select" role="dialog" aria-modal="true" aria-labelledby="item-select-title">
+      <div class="modal-header">
+        <span id="item-select-title">아이템 선택</span>
+        <button id="item-select-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <ul id="item-select-list" class="modal-body"></ul>
+    </div>
+  </div>
+
+  <div id="worldview-list-modal" class="modal-overlay" data-character="mid" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="worldview-list-modal-title">
+      <div class="modal-header">
+        <span id="worldview-list-modal-title">세계관 목록</span>
+        <button id="worldview-list-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <!-- 세계관 추가. 예전에는 메인 바의 + 가 따로 창을 띄웠습니다. -->
+      <div class="worldview-add-row">
+        <input type="text" id="worldview-add-input" placeholder="추가할 세계관을 입력해주세요." autocomplete="off">
+        <button id="worldview-add-submit-btn" type="button">추가</button>
+      </div>
+
+      <ul id="worldview-list" class="modal-body"></ul>
+    </div>
+  </div>
+
+  <div id="worldview-edit-modal" class="modal-overlay" data-character="mid" aria-hidden="true">
+    <div class="modal-card modal-card-edit" role="dialog" aria-modal="true" aria-labelledby="worldview-edit-modal-title">
+      <div class="modal-header">
+        <span id="worldview-edit-modal-title">세계관 수정</span>
+        <button id="worldview-edit-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-input-box">
+        <input type="text" id="worldview-edit-input" placeholder="세계관 이름" autocomplete="off">
+        <label class="worldview-field">
+          <span id="worldview-image-a-label">A 기본 이미지</span>
+          <input type="url" id="worldview-image-a-input" placeholder="비우면 원래 기본 이미지" autocomplete="off">
+        </label>
+        <label class="worldview-field">
+          <span id="worldview-image-b-label">B 기본 이미지</span>
+          <input type="url" id="worldview-image-b-input" placeholder="비우면 원래 기본 이미지" autocomplete="off">
+        </label>
+        <button id="worldview-edit-submit-btn" type="button">수정</button>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    설정 창. 위의 [설정], 또는 비어 있는 캐릭터 칸을 누르면 열립니다. (js/modules/customize.js)
+    A / B 탭: 기본 이미지 · 이름 · 컬러       기타 탭: 마우스 캐릭터 · 배경 음악 · DB 연결
+  -->
+  <div id="settings-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-card-settings" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <div class="modal-header">
+        <span id="settings-modal-title">설정</span>
+        <div class="modal-header-btns">
+          <button class="character-tab-btn settings-tab" type="button" data-tab="char-a">A</button>
+          <button class="character-tab-btn settings-tab" type="button" data-tab="char-b">B</button>
+          <button class="character-tab-btn settings-tab" type="button" data-tab="etc">기타</button>
+          <button id="settings-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+        </div>
+      </div>
+
+      <div class="settings-scroll">
+        <section id="settings-character-panel" class="settings-panel">
+          <div class="settings-field">
+            <span class="settings-label">기본 이미지</span>
+            <div class="image-picker" id="character-image-picker">
+              <button type="button" class="image-picker-preview is-empty" aria-label="이미지 고르기">
+                <img alt="">
+                <span class="image-picker-placeholder" aria-hidden="true">+<small>이미지 고르기</small></span>
+              </button>
+              <div class="image-picker-side">
+                <div class="image-picker-actions">
+                  <button type="button" class="image-picker-file">파일 올리기</button>
+                  <button type="button" class="image-picker-clear">지우기</button>
+                </div>
+                <input type="url" class="image-picker-url" placeholder="또는 이미지 주소 붙여넣기" autocomplete="off">
+                <p class="image-picker-note" hidden></p>
+              </div>
+              <input type="file" class="image-picker-input" accept="image/*" hidden>
+            </div>
+          </div>
+
+          <label class="settings-field">
+            <span class="settings-label">이름</span>
+            <input type="text" id="character-name-input" maxlength="20" autocomplete="off">
+          </label>
+
+          <div class="settings-field">
+            <span class="settings-label">컬러</span>
+            <div class="color-row">
+              <input type="color" id="character-color-picker" value="#6b7280" aria-label="컬러 고르기">
+              <input type="text" id="character-color-input" maxlength="7" placeholder="#6b7280 (비우면 회색)" autocomplete="off" spellcheck="false" aria-label="컬러 코드">
+              <button type="button" id="character-color-reset" class="settings-text-btn">기본색</button>
+            </div>
+          </div>
+
+          <button id="character-save-btn" class="settings-save-btn" type="button">저장</button>
+        </section>
+
+        <section id="settings-etc-panel" class="settings-panel" hidden>
+          <div class="settings-group-title">마우스를 따라다니는 캐릭터</div>
+          <p class="settings-note">넣은 그림만 마우스를 따라다녀요. 비워 두면 보이지 않아요. (마우스가 있는 컴퓨터에서만 보여요)</p>
+          <div class="settings-field">
+            <span class="settings-label" id="cursor-label-a">A</span>
+            <div class="image-picker is-compact" id="cursor-image-picker-a">
+              <button type="button" class="image-picker-preview is-empty" aria-label="그림 고르기">
+                <img alt="">
+                <span class="image-picker-placeholder" aria-hidden="true">+<small>그림 고르기</small></span>
+              </button>
+              <div class="image-picker-side">
+                <div class="image-picker-actions">
+                  <button type="button" class="image-picker-file">파일 올리기</button>
+                  <button type="button" class="image-picker-clear">지우기</button>
+                </div>
+                <input type="url" class="image-picker-url" placeholder="또는 이미지 주소 붙여넣기" autocomplete="off">
+                <p class="image-picker-note" hidden></p>
+              </div>
+              <input type="file" class="image-picker-input" accept="image/*" hidden>
+            </div>
+          </div>
+          <div class="settings-field">
+            <span class="settings-label" id="cursor-label-b">B</span>
+            <div class="image-picker is-compact" id="cursor-image-picker-b">
+              <button type="button" class="image-picker-preview is-empty" aria-label="그림 고르기">
+                <img alt="">
+                <span class="image-picker-placeholder" aria-hidden="true">+<small>그림 고르기</small></span>
+              </button>
+              <div class="image-picker-side">
+                <div class="image-picker-actions">
+                  <button type="button" class="image-picker-file">파일 올리기</button>
+                  <button type="button" class="image-picker-clear">지우기</button>
+                </div>
+                <input type="url" class="image-picker-url" placeholder="또는 이미지 주소 붙여넣기" autocomplete="off">
+                <p class="image-picker-note" hidden></p>
+              </div>
+              <input type="file" class="image-picker-input" accept="image/*" hidden>
+            </div>
+          </div>
+
+          <div class="settings-group-title">배경 음악</div>
+          <label class="settings-field">
+            <span class="settings-label">음악 파일 주소 (mp3 등)</span>
+            <input type="url" id="music-src-input" placeholder="비우면 재생바가 숨겨집니다" autocomplete="off">
+          </label>
+          <label class="settings-field">
+            <span class="settings-label">표기</span>
+            <input type="text" id="music-artist-input" maxlength="40" placeholder="예) ⓒ만든 사람" autocomplete="off">
+          </label>
+          <button id="etc-save-btn" class="settings-save-btn" type="button">저장</button>
+
+          <div class="settings-group-title">데이터베이스</div>
+          <p id="db-status" class="settings-note"></p>
+          <div class="settings-btn-row">
+            <button id="db-forget-btn" class="settings-secondary-btn" type="button">이 브라우저에서 지우기</button>
+            <button id="db-change-btn" class="settings-secondary-btn" type="button">연결 변경</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 아이템 추가 · 수정. 빈 아이템 칸이나 아이템 정보의 [수정]을 누르면 열립니다. -->
+  <div id="item-edit-modal" class="modal-overlay" data-character="mid" aria-hidden="true">
+    <div class="modal-card modal-card-settings" role="dialog" aria-modal="true" aria-labelledby="item-edit-modal-title">
+      <div class="modal-header">
+        <span id="item-edit-modal-title">아이템</span>
+        <button id="item-edit-close-btn" class="modal-close-btn" type="button" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="settings-scroll">
+        <section class="settings-panel">
+          <div class="settings-field">
+            <span class="settings-label">이미지</span>
+            <div class="image-picker" id="item-image-picker">
+              <button type="button" class="image-picker-preview is-empty" aria-label="이미지 고르기">
+                <img alt="">
+                <span class="image-picker-placeholder" aria-hidden="true">+<small>이미지 고르기</small></span>
+              </button>
+              <div class="image-picker-side">
+                <div class="image-picker-actions">
+                  <button type="button" class="image-picker-file">파일 올리기</button>
+                  <button type="button" class="image-picker-clear">지우기</button>
+                </div>
+                <input type="url" class="image-picker-url" placeholder="또는 이미지 주소 붙여넣기" autocomplete="off">
+                <p class="image-picker-note" hidden></p>
+              </div>
+              <input type="file" class="image-picker-input" accept="image/*" hidden>
+            </div>
+          </div>
+
+          <label class="settings-field">
+            <span class="settings-label">이름</span>
+            <input type="text" id="item-name-input" maxlength="30" autocomplete="off">
+          </label>
+
+          <label class="settings-field">
+            <span class="settings-label">설명</span>
+            <textarea id="item-desc-input" rows="3" maxlength="500" placeholder="아이템을 눌렀을 때 보이는 설명 (선택)"></textarea>
+          </label>
+
+          <div class="settings-btn-row">
+            <button id="item-clear-btn" class="settings-secondary-btn is-danger" type="button" hidden>칸 비우기</button>
+            <button id="item-save-btn" class="settings-save-btn" type="button">저장</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    DB 연결 입력창. 연결 정보가 없을 때 처음 한 번 뜹니다. (js/modules/setup.js)
+    js/config.js 에 연결 정보를 적어 두면 뜨지 않습니다.
+  -->
+  <div id="setup-modal" class="modal-overlay" data-character="mid" aria-hidden="true">
+    <div class="modal-card modal-card-setup" role="dialog" aria-modal="true" aria-labelledby="setup-modal-title">
+      <div class="modal-header">
+        <span id="setup-modal-title">데이터베이스 연결</span>
+        <button id="setup-close-btn" class="modal-close-btn" type="button" aria-label="닫기" hidden>✕</button>
+      </div>
+
+      <div class="settings-scroll">
+        <p class="setup-lead">대사와 설정을 저장할 Supabase 프로젝트를 연결해 주세요.<br>한 번 연결하면 이 브라우저에서는 다시 묻지 않아요.</p>
+
+        <details class="setup-help">
+          <summary>처음이라면 여기부터</summary>
+          <ol>
+            <li><a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>에서 무료 프로젝트를 하나 만듭니다.</li>
+            <li>왼쪽 메뉴 <b>SQL Editor</b>에 이 코드의 <code>supabase/schema.sql</code> 내용을 전부 붙여넣고 <b>Run</b>을 누릅니다.</li>
+            <li><b>Project Settings</b>에서 <b>Project URL</b>과 <b>Publishable key</b>(예전 이름: anon key)를 복사해 아래에 붙여넣습니다.</li>
+          </ol>
+          <p>secret 키나 service_role 키는 넣지 마세요.</p>
+        </details>
+
+        <form id="setup-form" class="settings-panel" novalidate>
+          <label class="settings-field">
+            <span class="settings-label">Project URL</span>
+            <input type="text" id="setup-url-input" inputmode="url" placeholder="https://xxxxxxxxxxxxxxxxxxxx.supabase.co" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="settings-field">
+            <span class="settings-label">Publishable key</span>
+            <input type="text" id="setup-key-input" placeholder="sb_publishable_... 또는 eyJ..." autocomplete="off" spellcheck="false">
+          </label>
+          <p id="setup-error" class="setup-error" role="alert" hidden></p>
+          <button id="setup-submit-btn" class="settings-save-btn" type="submit">연결</button>
+        </form>
+
+        <p class="settings-note">다른 기기나 브라우저에서는 한 번 더 입력해야 해요.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

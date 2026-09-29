@@ -1,0 +1,94 @@
+/* ================= 항상 위에 띄우기 ================= */
+
+/*
+ * 왼쪽 위 고정 단추. 오른쪽 위 음악 재생바와 짝을 이룹니다.
+ * 크롬·엣지(컴퓨터)가 아니면 아예 만들어지지 않습니다.
+ */
+.ontop-btn {
+  /* 자리와 위치는 .top-controls 가 잡습니다 (css/controls.css) */
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #8a93a0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ontop-btn:hover { color: var(--color-a-text); }
+.ontop-btn[hidden] { display: none; }
+
+.ontop-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/*
+ * 작은 창 안에서 감출 것들.
+ *
+ * 음악바는 감추지 않습니다. 작은 창으로 띄우면 그쪽이 '지금 보는 창'이라
+ * 노래도 거기서 다루는 게 자연스럽기 때문입니다.
+ * 대신 원래 창의 노래는 멈추고 바도 감춥니다(아래 is-popped-out).
+ *
+ * 커서 캐릭터는 원래 창에서 이미 마우스를 따라다니고 있어서 뺍니다.
+ * 압정은 이미 그 창이므로 뺍니다.
+ */
+html.is-embedded .cursor-trail,
+html.is-embedded .ontop-btn,
+html.is-embedded .top-controls .ontop-btn {
+  display: none;
+}
+
+/* 작은 창으로 띄운 동안에는 원래 창의 내용을 접어 둡니다. */
+body.is-popped-out .app-shell,
+body.is-popped-out .cursor-trail {
+  visibility: hidden;
+}
+
+/* 노래는 작은 창이 맡습니다. 원래 창의 바는 감춰 둡니다. */
+body.is-popped-out .music-player {
+  display: none;
+}
+
+.ontop-notice {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 950;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 16px;
+
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6c7683;
+  box-shadow: 0 8px 22px rgba(var(--color-a-shadow-rgb), 0.16);
+
+  font-size: 13px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.ontop-notice-btn {
+  flex: none;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-a);
+  color: var(--color-a-on);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ontop-notice-btn:hover { filter: brightness(1.08); }
+
+

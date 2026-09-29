@@ -1,0 +1,404 @@
+/* ================= 설정 · 아이템 · DB 연결 창 ================= */
+
+/*
+ * 세 창이 같은 모양의 칸(.settings-field)과 단추를 씁니다.
+ * 색은 모두 --theme 를 따릅니다. (A 탭이면 A 컬러, B 탭이면 B 컬러, 나머지는 중간색)
+ */
+
+.modal-card-settings,
+.modal-card-setup {
+  width: min(400px, 94vw);
+  max-height: min(620px, 90vh);
+}
+
+.settings-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-panel[hidden] { display: none; }
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.settings-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.settings-field input[type="text"],
+.settings-field input[type="url"],
+.settings-field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #333;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.settings-field textarea {
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.5;
+}
+
+.settings-field input:focus,
+.settings-field textarea:focus {
+  border-color: var(--theme-text);
+}
+
+.settings-field input::placeholder,
+.settings-field textarea::placeholder {
+  color: #b3b8bf;
+}
+
+.settings-group-title {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #333;
+}
+
+.settings-group-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.settings-note {
+  font-size: 11px;
+  line-height: 1.55;
+  color: #8a8f97;
+  white-space: pre-line;
+  /* 한글은 낱말 단위로 줄을 바꾸고, 긴 주소만 아무 데서나 끊습니다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.settings-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-btn-row > * { flex: 1 1 0; }
+
+.settings-save-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--theme);
+  color: var(--theme-on);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-save-btn:hover:not(:disabled) { filter: brightness(1.08); }
+
+.settings-save-btn:disabled,
+.settings-secondary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.settings-secondary-btn {
+  padding: 9px;
+  border: 1px solid #d5d9df;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #5b616b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-secondary-btn:hover:not(:disabled) {
+  border-color: var(--theme-text);
+  color: var(--theme-text);
+}
+
+.settings-secondary-btn[hidden] { display: none; }
+
+.settings-secondary-btn.is-danger:hover:not(:disabled) {
+  border-color: #e5484d;
+  color: #d93036;
+}
+
+.settings-text-btn {
+  flex: none;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  color: #8a8f97;
+  font-size: 11.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.settings-text-btn:hover { color: var(--theme-text); }
+
+/* ---------------- 컬러 ---------------- */
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-row input[type="color"] {
+  flex: none;
+  width: 40px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.color-row input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+/* ---------------- 이미지 고르기 ---------------- */
+
+.image-picker {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.image-picker-preview {
+  position: relative;
+  flex: none;
+  width: 104px;
+  height: 104px;
+  padding: 6px;
+  border: 1px solid #e3e5e8;
+  border-radius: 10px;
+  background:
+    repeating-conic-gradient(#f3f4f6 0% 25%, #ffffff 0% 50%) 0 0 / 14px 14px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.image-picker-preview:hover,
+.image-picker-preview.is-dropping {
+  border-color: var(--theme-text);
+  box-shadow: 0 0 0 3px rgba(var(--theme-rgb), 0.15);
+}
+
+.image-picker-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  font-size: 0;
+}
+
+.image-picker-placeholder {
+  display: none;
+}
+
+.image-picker-preview.is-empty {
+  border: 2px dashed rgba(var(--theme-rgb), 0.4);
+  background: rgba(var(--theme-rgb), 0.04);
+}
+
+.image-picker-preview.is-empty img { display: none; }
+
+.image-picker-preview.is-empty .image-picker-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--theme-text);
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.image-picker-placeholder small {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.image-picker-side {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.image-picker-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.image-picker-actions button {
+  flex: 1 1 0;
+  padding: 7px 6px;
+  border: 1px solid var(--theme-text);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--theme-text);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.image-picker-actions button:hover {
+  background: var(--theme);
+  border-color: var(--theme);
+  color: var(--theme-on);
+}
+
+.image-picker-actions .image-picker-clear {
+  flex: 0 0 auto;
+  border-color: #d5d9df;
+  color: #8a8f97;
+}
+
+.image-picker-actions .image-picker-clear:hover {
+  background: #f3f4f6;
+  border-color: #c4c8ce;
+  color: #5b616b;
+}
+
+.image-picker .image-picker-url {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 11.5px;
+  outline: none;
+}
+
+.image-picker .image-picker-url:focus { border-color: var(--theme-text); }
+
+.image-picker-note {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: #8a8f97;
+  word-break: break-all;
+}
+
+.image-picker-note.is-error { color: #d93036; }
+.image-picker-note[hidden] { display: none; }
+
+/* 작은 칸 (기타 탭의 '마우스를 따라다니는 캐릭터'). 커서 옆에 작게 나오는 그림이라 칸도 작게 둡니다. */
+.image-picker.is-compact .image-picker-preview {
+  width: 76px;
+  height: 76px;
+  padding: 4px;
+}
+
+.image-picker.is-compact .image-picker-placeholder {
+  font-size: 22px;
+}
+
+.image-picker.is-compact .image-picker-placeholder small {
+  font-size: 10px;
+}
+
+@media (max-width: 360px) {
+  .image-picker { flex-direction: column; }
+  .image-picker-preview,
+  .image-picker.is-compact .image-picker-preview { width: 100%; height: 140px; }
+}
+
+/* ---------------- DB 연결 ---------------- */
+
+.setup-lead {
+  margin-bottom: 12px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #444;
+  word-break: keep-all;
+}
+
+.setup-help {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f5f6f7;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #555;
+}
+
+.setup-help summary {
+  font-weight: 700;
+  color: #333;
+  cursor: pointer;
+}
+
+.setup-help ol {
+  margin: 8px 0 6px;
+  padding-left: 18px;
+}
+
+.setup-help li + li { margin-top: 4px; }
+
+.setup-help p { color: #b3261e; }
+
+.setup-help a { color: inherit; }
+
+.setup-help code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #e8eaed;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.setup-error {
+  padding: 9px 11px;
+  border-radius: 6px;
+  background: #fdecec;
+  color: #b3261e;
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.setup-error[hidden] { display: none; }
+
+#setup-form input { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+
+.modal-card-setup .settings-note { margin-top: 12px; }
+
+/* 아이템 정보 창: 설명이 없으면 칸을 감춥니다. */
+.item-modal-desc[hidden] { display: none; }

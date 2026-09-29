@@ -1,0 +1,455 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+
+.modal-overlay.is-open { display: flex; }
+
+/*
+ * 겹침 순서. 뒤에서 열리는 창일수록 위로 옵니다.
+ *   대사 목록 -> 대사 수정 -> 아이템/표정/세계관 선택
+ *   세계관 목록 -> 세계관 수정 / 표정 목록 -> 표정 수정
+ */
+#quote-modal { z-index: 1000; }
+#quote-add-modal { z-index: 1002; }
+#worldview-list-modal { z-index: 1010; }
+#worldview-edit-modal { z-index: 1012; }
+#expression-modal { z-index: 1012; }
+#expression-edit-modal { z-index: 1014; }
+#quote-edit-modal { z-index: 1020; }
+#expression-select-modal { z-index: 1030; }
+#item-select-modal { z-index: 1030; }
+#worldview-select-modal { z-index: 1030; }
+#item-detail-modal { z-index: 1040; }
+#item-edit-modal { z-index: 1045; }
+#settings-modal { z-index: 1050; }
+/* DB 연결창은 로딩창(20000)보다도 위입니다. 처음 켤 때 로딩창 대신 뜹니다. */
+#setup-modal { z-index: 21000; }
+
+.modal-card {
+  background: #ffffff;
+  width: min(380px, 94vw);
+  max-height: min(460px, 82vh);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.modal-card-short { max-height: min(330px, 78vh); }
+.modal-card-edit { max-height: min(280px, 70vh); }
+.modal-card-select { max-height: min(380px, 78vh); }
+.modal-card-item { max-height: min(400px, 80vh); }
+
+.modal-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.modal-header-btns {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: #888;
+  padding: 2px;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-right: 3px;
+}
+
+.quote-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: #333;
+  gap: 6px;
+}
+
+.quote-text {
+  flex: 1;
+  word-break: break-all;
+  white-space: pre-wrap;
+  line-height: 1.3;
+}
+
+.quote-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/*
+ * '수정' 단추.
+ * 평소에는 테두리와 글자에만 색이 있고 배경은 비어 있습니다.
+ * 마우스를 올리면 예전처럼 색이 꽉 찹니다.
+ * ('추가' · '등록' 단추는 예전 그대로 꽉 찬 모양입니다)
+ */
+.quote-action-btn {
+  border-radius: 4px;
+  font-size: 10.5px;
+  padding: 3px 7px;
+  cursor: pointer;
+  border: 1px solid var(--theme-text);
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: transparent;
+  color: var(--theme-text);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.quote-action-btn:hover {
+  background-color: var(--theme);
+  border-color: var(--theme);
+  color: var(--theme-on);
+}
+
+/* 대사 목록 / 표정 목록 / 세계관 목록의 ✕ 를 같은 모양으로 씁니다. */
+.quote-actions .delete-btn,
+.expression-actions .delete-btn,
+.worldview-row-actions .delete-btn {
+  color: #ff4d4f;
+  cursor: pointer;
+  font-weight: bold;
+  border: none;
+  background: none;
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.quote-tag-btn {
+  display: inline-block;
+  padding: 4px 6px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  border-radius: 4px;
+  white-space: nowrap;
+  max-width: 66px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.quote-tag-btn.default-tag {
+  color: #888 !important;
+  background-color: #f5f5f5 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.quote-tag-btn.active-tag {
+  background-color: transparent !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-text) !important;
+}
+
+.quote-tag-btn:hover { filter: brightness(0.95); }
+
+/*
+ * 캐릭터별 테마.
+ * 모달을 열 때 data-character가 붙고, 그 안의 버튼/목록/포커스 색이 함께 바뀝니다.
+ * 이 파일의 색은 모두 --theme 변수를 씁니다. 기본값은 A 컬러(css/base.css)이고,
+ * B 이거나 가운데 색일 때만 여기서 변수를 바꿉니다.
+ */
+[data-character="char-b"] {
+  --theme: var(--color-b);
+  --theme-text: var(--color-b-text);
+  --theme-on: var(--color-b-on);
+  --theme-soft: var(--color-b-soft);
+  --theme-rgb: var(--color-b-rgb);
+}
+
+[data-character="mid"] {
+  --theme: var(--color-mid);
+  --theme-text: var(--color-mid-text);
+  --theme-on: var(--color-mid-on);
+  --theme-soft: var(--color-mid-soft);
+  --theme-rgb: var(--color-mid-rgb);
+}
+
+.modal-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.modal-input-box input {
+  padding: 9px 11px;
+  font-size: 12.5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+}
+
+.modal-input-box input:focus {
+  border-color: var(--theme-text);
+}
+
+.modal-input-box button {
+  background: var(--theme);
+  color: var(--theme-on);
+  border: none;
+  padding: 9px;
+  font-size: 12.5px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.expression-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.expression-input-box input {
+  padding: 8px 10px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.expression-input-box input:focus {
+  border-color: var(--theme-text);
+  outline: none;
+}
+
+.expression-input-box button {
+  background: var(--theme);
+  color: var(--theme-on);
+  border: none;
+  padding: 8px;
+  font-size: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/*
+ * 표정 목록 한 줄과 세계관 목록 한 줄은 생김새가 완전히 같습니다.
+ * 따로 두면 한쪽만 고치는 일이 생기므로 여기 한 곳에 모아 둡니다.
+ * (세계관 쪽 색깔·선택 표시만 css/worldview.css 에서 덧입힙니다)
+ */
+.expression-item,
+.worldview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  background: #fafafa;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+.expression-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.expression-select-item {
+  padding: 9px 11px;
+  font-size: 12px;
+  background: var(--theme-soft);
+  color: var(--theme-text);
+  border-radius: 6px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.expression-select-item.is-current {
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 currentColor;
+}
+
+.expression-select-item.default-tag {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.expression-select-item:hover { filter: brightness(0.92); }
+
+.item-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.item-modal-img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f8f9fa;
+  padding: 4px;
+}
+
+.item-modal-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #333;
+}
+
+.item-modal-desc {
+  font-size: 11.5px;
+  color: #666;
+  line-height: 1.5;
+  word-break: keep-all;
+  white-space: pre-wrap;
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.empty-state {
+  text-align: center;
+  color: #aaa;
+  padding: 20px 15px;
+  font-size: 11.5px;
+}
+
+/* 대사와 표정의 세계관이 어긋난 태그 */
+.quote-tag-btn.is-mismatched {
+  color: #b8860b !important;
+  background-color: #fff8e1 !important;
+  border: 1px solid #e0a800 !important;
+}
+
+/* ---- 대사 수정 모달: 입력창과 수정 버튼 사이의 태그 줄 ---- */
+.quote-edit-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 7px 14px;
+  padding: 4px 0 2px;
+}
+
+.quote-edit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.quote-edit-tag[hidden] { display: none; }
+
+.quote-edit-tag-label {
+  font-size: 11px;
+  color: #7a8490;
+  white-space: nowrap;
+}
+
+.quote-edit-tags .quote-tag-btn { max-width: 88px; }
+
+/* ---- 표정 목록 · 설정 모달의 A / B 전환 ----
+   상자 없이 글자만 두고, 선택된 쪽만 그 캐릭터 색으로 켭니다. */
+.character-tab-btn {
+  max-width: 7em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  background: transparent;
+  color: #b9c0ca;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.character-tab-btn:hover { color: #8a94a3; }
+
+.character-tab-btn.is-active { color: var(--color-mid-text); }
+.character-tab-btn.is-active[data-character-id="char-a"],
+.character-tab-btn.is-active[data-tab="char-a"] { color: var(--color-a-text); }
+.character-tab-btn.is-active[data-character-id="char-b"],
+.character-tab-btn.is-active[data-tab="char-b"] { color: var(--color-b-text); }
+
+/* 대사 목록 헤더의 정렬 선택 */
+/*
+ * 제목 아래 한 줄을 차지하는 거르기 / 정렬 상자.
+ * 세 칸이 남는 폭을 고르게 나눠 가집니다.
+ */
+.quote-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.quote-sort-select {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid #d5dbe3;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #5c6b7f;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 7px;
+  cursor: pointer;
+  outline: none;
+}
+
+.quote-sort-select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 전체가 아닌 값을 고르면 켜져 있다는 게 보이도록 */
+.quote-sort-select.is-filtered {
+  border-color: var(--theme-text);
+  background: var(--theme-soft);
+  color: var(--theme-text);
+}
+
+.quote-sort-select:focus { border-color: var(--theme-text); }
