@@ -22,4 +22,4 @@ export const TABLES = Object.freeze({
 });
 
 // 캐릭터 · 아이템 이미지를 올리는 Storage 버킷. supabase/schema.sql 이 만듭니다.
-export const STORAGE_BUCKET = 'collige';
+export const STORAGE_BUCKET = 'dialogue-images';

@@ -61,7 +61,7 @@
 
 .settings-field input:focus,
 .settings-field textarea:focus {
-  border-color: var(--theme-text);
+  border-color: var(--theme);
 }
 
 .settings-field input::placeholder,
@@ -132,8 +132,8 @@
 }
 
 .settings-secondary-btn:hover:not(:disabled) {
-  border-color: var(--theme-text);
-  color: var(--theme-text);
+  border-color: var(--theme);
+  color: var(--theme);
 }
 
 .settings-secondary-btn[hidden] { display: none; }
@@ -155,7 +155,7 @@
   text-underline-offset: 3px;
 }
 
-.settings-text-btn:hover { color: var(--theme-text); }
+.settings-text-btn:hover { color: var(--theme); }
 
 /* ---------------- 컬러 ---------------- */
 
@@ -207,7 +207,7 @@
 
 .image-picker-preview:hover,
 .image-picker-preview.is-dropping {
-  border-color: var(--theme-text);
+  border-color: var(--theme);
   box-shadow: 0 0 0 3px rgba(var(--theme-rgb), 0.15);
 }
 
@@ -238,7 +238,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  color: var(--theme-text);
+  color: var(--theme);
   font-size: 28px;
   font-weight: 300;
   line-height: 1;
@@ -266,10 +266,10 @@
 .image-picker-actions button {
   flex: 1 1 0;
   padding: 7px 6px;
-  border: 1px solid var(--theme-text);
+  border: 1px solid var(--theme);
   border-radius: 6px;
   background: transparent;
-  color: var(--theme-text);
+  color: var(--theme);
   font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
@@ -304,7 +304,7 @@
   outline: none;
 }
 
-.image-picker .image-picker-url:focus { border-color: var(--theme-text); }
+.image-picker .image-picker-url:focus { border-color: var(--theme); }
 
 .image-picker-note {
   font-size: 10.5px;

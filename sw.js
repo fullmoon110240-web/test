@@ -11,9 +11,9 @@
  * │  (npm run release 를 돌리면 오늘 날짜로 바뀝니다)             │
  * └─────────────────────────────────────────────────────────────┘
  */
-const VERSION = '2026-09-29-2';
+const VERSION = '2026-09-29-4';
 
-const CACHE = `collige-${VERSION}`;
+const CACHE = `dialogue-player-${VERSION}`;
 
 // 인터넷이 끊겼을 때도 창이 열리도록 미리 받아 두는 파일들입니다.
 const SHELL = [
@@ -80,7 +80,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     for (const name of await caches.keys()) {
-      if (name.startsWith('collige-') && name !== CACHE) await caches.delete(name);
+      if (name.startsWith('dialogue-player-') && name !== CACHE) await caches.delete(name);
     }
     await self.clients.claim();
   })());

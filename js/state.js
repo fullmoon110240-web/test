@@ -29,7 +29,7 @@ export const state = {
 
 function readStoredSort() {
   try {
-    const saved = localStorage.getItem('colliji:quote-sort');
+    const saved = localStorage.getItem('dialogue:quote-sort');
     return ['oldest', 'newest', 'name'].includes(saved) ? saved : 'oldest';
   } catch {
     return 'oldest';

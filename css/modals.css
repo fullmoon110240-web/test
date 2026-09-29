@@ -121,11 +121,11 @@
   font-size: 10.5px;
   padding: 3px 7px;
   cursor: pointer;
-  border: 1px solid var(--theme-text);
+  border: 1px solid var(--theme);
   font-weight: 600;
   white-space: nowrap;
   background-color: transparent;
-  color: var(--theme-text);
+  color: var(--theme);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -172,8 +172,8 @@
 
 .quote-tag-btn.active-tag {
   background-color: transparent !important;
-  color: var(--theme-text) !important;
-  border: 1px solid var(--theme-text) !important;
+  color: var(--theme) !important;
+  border: 1px solid var(--theme) !important;
 }
 
 .quote-tag-btn:hover { filter: brightness(0.95); }
@@ -186,7 +186,6 @@
  */
 [data-character="char-b"] {
   --theme: var(--color-b);
-  --theme-text: var(--color-b-text);
   --theme-on: var(--color-b-on);
   --theme-soft: var(--color-b-soft);
   --theme-rgb: var(--color-b-rgb);
@@ -194,7 +193,6 @@
 
 [data-character="mid"] {
   --theme: var(--color-mid);
-  --theme-text: var(--color-mid-text);
   --theme-on: var(--color-mid-on);
   --theme-soft: var(--color-mid-soft);
   --theme-rgb: var(--color-mid-rgb);
@@ -217,7 +215,7 @@
 }
 
 .modal-input-box input:focus {
-  border-color: var(--theme-text);
+  border-color: var(--theme);
 }
 
 .modal-input-box button {
@@ -248,7 +246,7 @@
 }
 
 .expression-input-box input:focus {
-  border-color: var(--theme-text);
+  border-color: var(--theme);
   outline: none;
 }
 
@@ -292,7 +290,7 @@
   padding: 9px 11px;
   font-size: 12px;
   background: var(--theme-soft);
-  color: var(--theme-text);
+  color: var(--theme);
   border-radius: 6px;
   margin-bottom: 5px;
   cursor: pointer;
@@ -408,11 +406,11 @@
 
 .character-tab-btn:hover { color: #8a94a3; }
 
-.character-tab-btn.is-active { color: var(--color-mid-text); }
+.character-tab-btn.is-active { color: var(--color-mid); }
 .character-tab-btn.is-active[data-character-id="char-a"],
-.character-tab-btn.is-active[data-tab="char-a"] { color: var(--color-a-text); }
+.character-tab-btn.is-active[data-tab="char-a"] { color: var(--color-a); }
 .character-tab-btn.is-active[data-character-id="char-b"],
-.character-tab-btn.is-active[data-tab="char-b"] { color: var(--color-b-text); }
+.character-tab-btn.is-active[data-tab="char-b"] { color: var(--color-b); }
 
 /* 대사 목록 헤더의 정렬 선택 */
 /*
@@ -447,9 +445,9 @@
 
 /* 전체가 아닌 값을 고르면 켜져 있다는 게 보이도록 */
 .quote-sort-select.is-filtered {
-  border-color: var(--theme-text);
+  border-color: var(--theme);
   background: var(--theme-soft);
-  color: var(--theme-text);
+  color: var(--theme);
 }
 
-.quote-sort-select:focus { border-color: var(--theme-text); }
+.quote-sort-select:focus { border-color: var(--theme); }

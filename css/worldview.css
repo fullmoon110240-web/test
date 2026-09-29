@@ -40,7 +40,7 @@
 
 .stage-link:hover,
 .stage-link:focus-visible {
-  color: var(--color-mid-text);
+  color: var(--color-mid);
   text-decoration-color: currentColor;
   outline: none;
 }
@@ -233,7 +233,7 @@
  * 마우스를 올리면 예전처럼 색이 꽉 찹니다.
  */
 .worldview-action-btn {
-  border: 1px solid var(--color-mid-text);
+  border: 1px solid var(--color-mid);
   border-radius: 4px;
   font-size: 10.5px;
   font-weight: 600;
@@ -241,7 +241,7 @@
   cursor: pointer;
   white-space: nowrap;
   background-color: transparent;
-  color: var(--color-mid-text);
+  color: var(--color-mid);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -266,7 +266,7 @@
 }
 
 #worldview-edit-modal .modal-input-box input:focus {
-  border-color: var(--color-mid-text);
+  border-color: var(--color-mid);
 }
 
 /* ---- 세계관 목록 안의 '추가' 줄 ---- */
@@ -296,7 +296,7 @@
 }
 
 .worldview-add-row input:focus {
-  border-color: var(--color-mid-text);
+  border-color: var(--color-mid);
 }
 
 .worldview-add-row button {

@@ -7,7 +7,8 @@
   /* 오른쪽 끝에서 얼마나 떨어질지. 키울수록 왼쪽으로 옵니다. */
   --player-right: 46px;
   --player-width: 230px;
-  --player-accent: var(--color-a);
+  /* 어느 한 캐릭터 것이 아니므로 A 와 B 의 중간색입니다. */
+  --player-accent: var(--color-mid);
 
   /* 아이콘 크기와 줄 간격. 만든 사람 이름을 막대 끝에 맞출 때도 씁니다. */
   --btn-size: 20px;
@@ -83,7 +84,7 @@
   min-width: 0;
   height: 4px;
   border-radius: 999px;
-  background: rgba(var(--color-a-rgb), 0.18);
+  background: rgba(var(--color-mid-rgb), 0.18);
   cursor: pointer;
 
   /* 4px짜리 막대는 누르기 어려우므로 위아래로 눌리는 범위를 넓힙니다. */
@@ -174,7 +175,7 @@
   appearance: none;
   -webkit-appearance: none;
   border-radius: 999px;
-  background: rgba(var(--color-a-rgb), 0.18);
+  background: rgba(var(--color-mid-rgb), 0.18);
   cursor: pointer;
   transform: rotate(-90deg);
 }

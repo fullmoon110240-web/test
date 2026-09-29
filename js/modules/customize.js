@@ -56,11 +56,11 @@ export function initializeCustomize() {
     button.addEventListener('click', () => openSettings(button.dataset.tab));
   }
 
-  document.addEventListener('colliji:character-setup', event => {
+  document.addEventListener('dialogue:character-setup', event => {
     openSettings(event.detail?.characterId);
   });
-  document.addEventListener('colliji:item-edit', event => openItemEdit(event.detail?.itemId));
-  document.addEventListener('colliji:settings-change', renderTabNames);
+  document.addEventListener('dialogue:item-edit', event => openItemEdit(event.detail?.itemId));
+  document.addEventListener('dialogue:settings-change', renderTabNames);
 
   // 색 고르기 칸과 #글자 칸을 서로 맞춥니다.
   const colorPicker = $('character-color-picker');

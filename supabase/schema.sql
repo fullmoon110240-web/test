@@ -136,8 +136,8 @@ do $$
 begin
   insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
   values (
-    'collige',
-    'collige',
+    'dialogue-images',
+    'dialogue-images',
     true,
     10485760,
     array['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']
@@ -147,21 +147,21 @@ begin
         file_size_limit    = excluded.file_size_limit,
         allowed_mime_types = excluded.allowed_mime_types;
 
-  drop policy if exists "collige_images_select" on storage.objects;
-  drop policy if exists "collige_images_insert" on storage.objects;
-  drop policy if exists "collige_images_update" on storage.objects;
-  drop policy if exists "collige_images_delete" on storage.objects;
+  drop policy if exists "dialogue_images_select" on storage.objects;
+  drop policy if exists "dialogue_images_insert" on storage.objects;
+  drop policy if exists "dialogue_images_update" on storage.objects;
+  drop policy if exists "dialogue_images_delete" on storage.objects;
 
-  create policy "collige_images_select" on storage.objects
-    for select to anon, authenticated using (bucket_id = 'collige');
-  create policy "collige_images_insert" on storage.objects
-    for insert to anon, authenticated with check (bucket_id = 'collige');
-  create policy "collige_images_update" on storage.objects
-    for update to anon, authenticated using (bucket_id = 'collige') with check (bucket_id = 'collige');
-  create policy "collige_images_delete" on storage.objects
-    for delete to anon, authenticated using (bucket_id = 'collige');
+  create policy "dialogue_images_select" on storage.objects
+    for select to anon, authenticated using (bucket_id = 'dialogue-images');
+  create policy "dialogue_images_insert" on storage.objects
+    for insert to anon, authenticated with check (bucket_id = 'dialogue-images');
+  create policy "dialogue_images_update" on storage.objects
+    for update to anon, authenticated using (bucket_id = 'dialogue-images') with check (bucket_id = 'dialogue-images');
+  create policy "dialogue_images_delete" on storage.objects
+    for delete to anon, authenticated using (bucket_id = 'dialogue-images');
 exception when others then
-  raise warning '이미지 저장소(Storage)를 준비하지 못했습니다: %. 대시보드의 Storage에서 collige 라는 Public 버킷을 직접 만들어 주세요.', sqlerrm;
+  raise warning '이미지 저장소(Storage)를 준비하지 못했습니다: %. 대시보드의 Storage에서 dialogue-images 라는 Public 버킷을 직접 만들어 주세요.', sqlerrm;
 end;
 $$;
 

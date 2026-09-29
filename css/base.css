@@ -3,9 +3,9 @@
  *
  * A · B 컬러는 화면의 [설정]에서 고르고, js/settings.js 가 아래 변수를 덮어씁니다.
  * 여기 적힌 값은 아직 아무 색도 고르지 않았을 때의 회색입니다.
+ * 고른 색은 글자 · 테두리 · 버튼 어디서나 바꾸지 않고 그대로 씁니다.
  *
- *   --color-a             고른 색 그대로 (버튼 바탕 등)
- *   --color-a-text        흰 바탕 위 글자용 (너무 연한 색은 읽힐 만큼 어둡게)
+ *   --color-a             고른 색 그대로
  *   --color-a-on          그 색 바탕 위에 올리는 글자색
  *   --color-a-soft        아주 연한 바탕색
  *   --color-a-rgb         투명도를 줄 때 쓰는 r, g, b
@@ -15,21 +15,18 @@
  */
 :root {
   --color-a: #6b7280;
-  --color-a-text: #6b7280;
   --color-a-on: #ffffff;
   --color-a-soft: #f0f1f2;
   --color-a-rgb: 107, 114, 128;
   --color-a-shadow-rgb: 70, 74, 83;
 
   --color-b: #6b7280;
-  --color-b-text: #6b7280;
   --color-b-on: #ffffff;
   --color-b-soft: #f0f1f2;
   --color-b-rgb: 107, 114, 128;
   --color-b-shadow-rgb: 70, 74, 83;
 
   --color-mid: #6b7280;
-  --color-mid-text: #6b7280;
   --color-mid-on: #ffffff;
   --color-mid-soft: #f0f1f2;
   --color-mid-rgb: 107, 114, 128;
@@ -37,7 +34,6 @@
 
   /* 모달 안 단추 · 목록 색. 캐릭터별 모달은 css/modals.css 에서 B 로 바꿉니다. */
   --theme: var(--color-a);
-  --theme-text: var(--color-a-text);
   --theme-on: var(--color-a-on);
   --theme-soft: var(--color-a-soft);
   --theme-rgb: var(--color-a-rgb);

@@ -3,6 +3,7 @@
 /*
  * 평소에는 아예 만들어지지도 않습니다.
  * 새 버전이 올라왔을 때만 js/modules/update.js 가 만들어 붙입니다.
+ * 색은 A 와 B 의 중간색(--color-mid)입니다.
  */
 .update-bar {
   position: fixed;
@@ -20,9 +21,9 @@
   padding: 9px 10px 9px 16px;
 
   border-radius: 999px;
-  background: var(--color-a);
-  color: var(--color-a-on);
-  box-shadow: 0 10px 26px rgba(var(--color-a-shadow-rgb), 0.34);
+  background: var(--color-mid);
+  color: var(--color-mid-on);
+  box-shadow: 0 10px 26px rgba(var(--color-mid-shadow-rgb), 0.34);
 
   font-size: 13px;
   line-height: 1.3;
@@ -40,7 +41,7 @@
   border: none;
   border-radius: 999px;
   background: #ffffff;
-  color: var(--color-a-text);
+  color: var(--color-mid);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -61,7 +62,7 @@
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--color-a-on);
+  color: var(--color-mid-on);
   opacity: 0.75;
   font-size: 13px;
   line-height: 1;

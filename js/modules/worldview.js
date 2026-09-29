@@ -42,7 +42,7 @@ const PUSH_MAX = 900;
  */
 const FALLOFF = 0.19;
 const MIN_SCALE = 0.62;
-const STORAGE_KEY = 'colliji:active-worldview';
+const STORAGE_KEY = 'dialogue:active-worldview';
 const DRAG_THRESHOLD = 6;
 
 let bar = null;
@@ -481,7 +481,7 @@ function applySelection(worldviewId) {
   syncActiveButtons();
   centerOnSelected();
   document.dispatchEvent(
-    new CustomEvent('colliji:worldview-change', { detail: { worldviewId: applied } })
+    new CustomEvent('dialogue:worldview-change', { detail: { worldviewId: applied } })
   );
 }
 
@@ -714,7 +714,7 @@ async function deleteWorldviewRow(worldview) {
 // 선택은 그대로 둔 채, 목록을 다시 그려야 할 때만 알립니다.
 function notifyWorldviewChanged() {
   document.dispatchEvent(
-    new CustomEvent('colliji:worldview-change', { detail: { worldviewId: state.activeWorldviewId } })
+    new CustomEvent('dialogue:worldview-change', { detail: { worldviewId: state.activeWorldviewId } })
   );
 }
 

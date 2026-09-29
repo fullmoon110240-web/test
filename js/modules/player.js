@@ -209,7 +209,7 @@ export function initializeMusicPlayer() {
 
   root.hidden = true;
   applySong(getMusic());
-  document.addEventListener('colliji:settings-change', () => applySong(getMusic()));
+  document.addEventListener('dialogue:settings-change', () => applySong(getMusic()));
 
   audio.preload = 'metadata';
   audio.loop = true;           // 끝나면 처음부터 다시

@@ -134,7 +134,7 @@ class ShimejiCharacter {
       event?.preventDefault?.();
       // 빈 칸이면 말하는 대신 기본 이미지를 넣는 창을 엽니다.
       if (this.isEmpty) {
-        document.dispatchEvent(new CustomEvent('colliji:character-setup', { detail: { characterId: this.id } }));
+        document.dispatchEvent(new CustomEvent('dialogue:character-setup', { detail: { characterId: this.id } }));
         return;
       }
       playPop();
@@ -148,12 +148,12 @@ class ShimejiCharacter {
 
     this.addButton.addEventListener('click', event => {
       event.stopPropagation();
-      document.dispatchEvent(new CustomEvent('colliji:quote-add', { detail: { characterId: this.id } }));
+      document.dispatchEvent(new CustomEvent('dialogue:quote-add', { detail: { characterId: this.id } }));
     });
 
     this.listButton.addEventListener('click', event => {
       event.stopPropagation();
-      document.dispatchEvent(new CustomEvent('colliji:quote-list', { detail: { characterId: this.id } }));
+      document.dispatchEvent(new CustomEvent('dialogue:quote-list', { detail: { characterId: this.id } }));
     });
   }
 
@@ -257,8 +257,8 @@ export function initializeCharacters() {
     characters.set(config.id, new ShimejiCharacter(config));
   }
 
-  document.addEventListener('colliji:worldview-change', refreshCharacterImages);
-  document.addEventListener('colliji:settings-change', () => {
+  document.addEventListener('dialogue:worldview-change', refreshCharacterImages);
+  document.addEventListener('dialogue:settings-change', () => {
     for (const character of characters.values()) character.refreshLabels();
     refreshCharacterImages();
   });

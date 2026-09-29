@@ -1,5 +1,5 @@
 {
-  "name": "collige",
+  "name": "dialogue-player",
   "private": true,
   "version": "1.0.0",
   "description": "두 캐릭터의 대사 · 표정 · 세계관을 모아 두는 웹 앱 (Supabase)",

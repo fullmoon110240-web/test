@@ -214,7 +214,7 @@ export function initializeCursorTrail() {
   }
 
   syncImages();
-  document.addEventListener('colliji:settings-change', syncImages);
+  document.addEventListener('dialogue:settings-change', syncImages);
 
   window.addEventListener('mousemove', handleMove, { passive: true });
   document.addEventListener('mouseleave', hide);

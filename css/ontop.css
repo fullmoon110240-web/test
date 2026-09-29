@@ -19,7 +19,7 @@
   transition: color 0.15s ease;
 }
 
-.ontop-btn:hover { color: var(--color-a-text); }
+.ontop-btn:hover { color: var(--color-mid); }
 .ontop-btn[hidden] { display: none; }
 
 .ontop-btn svg {
@@ -70,7 +70,7 @@ body.is-popped-out .music-player {
   border-radius: 999px;
   background: #ffffff;
   color: #6c7683;
-  box-shadow: 0 8px 22px rgba(var(--color-a-shadow-rgb), 0.16);
+  box-shadow: 0 8px 22px rgba(var(--color-mid-shadow-rgb), 0.16);
 
   font-size: 13px;
   white-space: nowrap;
@@ -82,8 +82,8 @@ body.is-popped-out .music-player {
   padding: 5px 12px;
   border: none;
   border-radius: 999px;
-  background: var(--color-a);
-  color: var(--color-a-on);
+  background: var(--color-mid);
+  color: var(--color-mid-on);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;

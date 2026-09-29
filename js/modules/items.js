@@ -49,12 +49,12 @@ export function initializeItems() {
     if (detailItemId) openItemEdit(detailItemId);
   });
 
-  document.addEventListener('colliji:settings-change', renderItemSlots);
+  document.addEventListener('dialogue:settings-change', renderItemSlots);
   renderItemSlots();
 }
 
 function openItemEdit(itemId) {
-  document.dispatchEvent(new CustomEvent('colliji:item-edit', { detail: { itemId } }));
+  document.dispatchEvent(new CustomEvent('dialogue:item-edit', { detail: { itemId } }));
 }
 
 // 칸마다 채워졌는지 비었는지에 맞춰 그림과 이름표를 다시 겁니다.

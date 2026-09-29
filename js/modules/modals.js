@@ -30,7 +30,7 @@ const CHARACTER_THEMED_MODALS = [
   'worldview-select-modal'
 ];
 
-const SORT_STORAGE_KEY = 'colliji:quote-sort';
+const SORT_STORAGE_KEY = 'dialogue:quote-sort';
 
 /*
  * 아이템 / 표정 / 세계관 선택창은 두 곳에서 열립니다.
@@ -169,23 +169,23 @@ function getExpressionCharacter() {
 }
 
 export function initializeModals() {
-  document.addEventListener('colliji:quote-add', event => {
+  document.addEventListener('dialogue:quote-add', event => {
     const character = event.detail?.characterId ? getCharacter(event.detail.characterId) : null;
     if (character) openQuoteAddModal(character);
   });
 
-  document.addEventListener('colliji:quote-list', event => {
+  document.addEventListener('dialogue:quote-list', event => {
     const character = event.detail?.characterId ? getCharacter(event.detail.characterId) : null;
     if (character) openQuoteModal(character);
   });
 
-  document.addEventListener('colliji:worldview-change', () => {
+  document.addEventListener('dialogue:worldview-change', () => {
     if (isModalOpen('quote-modal')) renderQuoteList();
     if (isModalOpen('expression-modal')) renderExpressionList();
   });
 
   // 캐릭터 이름이나 아이템이 바뀌면 떠 있는 목록의 글자도 맞춥니다.
-  document.addEventListener('colliji:settings-change', () => {
+  document.addEventListener('dialogue:settings-change', () => {
     renderExpressionTabs();
     if (isModalOpen('quote-modal')) renderQuoteList();
   });

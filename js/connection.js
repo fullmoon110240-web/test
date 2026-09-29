@@ -8,7 +8,7 @@ import { isMissingTable, makeClient } from './supabase.js';
  *   2. 없으면 이 브라우저에 저장해 둔 값을 씁니다.
  *   3. 그것도 없으면 첫 화면에서 입력창을 띄웁니다. (js/modules/setup.js)
  */
-const STORAGE_KEY = 'collige:db-connection';
+const STORAGE_KEY = 'dialogue:db-connection';
 
 export function getBuiltInConnection() {
   const url = normalizeProjectUrl(SUPABASE_URL);

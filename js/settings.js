@@ -11,7 +11,7 @@ import { deleteSetting, saveSetting } from './supabase.js';
  *   music              { src, artist }
  *   cursor             { char-a: 그림 주소, char-b: 그림 주소 }   마우스를 따라다니는 그림
  *
- * 바뀌면 'colliji:settings-change' 를 알립니다. 캐릭터 · 아이템 · 음악바가 듣고 다시 그립니다.
+ * 바뀌면 'dialogue:settings-change' 를 알립니다. 캐릭터 · 아이템 · 음악바가 듣고 다시 그립니다.
  */
 
 const store = {
@@ -73,7 +73,7 @@ export function loadSettings(rows) {
 }
 
 function notify() {
-  document.dispatchEvent(new CustomEvent('colliji:settings-change'));
+  document.dispatchEvent(new CustomEvent('dialogue:settings-change'));
 }
 
 /* ------------------------------------------------------------------ */
@@ -194,14 +194,14 @@ export async function saveExtras({ cursor, music }) {
 /* ------------------------------------------------------------------ */
 
 /*
- * 캐릭터 컬러 하나에서 화면에 필요한 색 다섯 가지를 뽑아 CSS 변수로 겁니다.
+ * 캐릭터 컬러 하나에서 화면에 필요한 값들을 뽑아 CSS 변수로 겁니다.
+ * 고른 색은 글자 · 테두리 · 버튼 어디서나 바꾸지 않고 그대로 씁니다.
  *
- *   --color-a             고른 색 그대로 (버튼 바탕 등)
- *   --color-a-text        흰 바탕 위 글자용. 너무 연하면 읽힐 만큼 어둡게 눌러 씁니다
- *   --color-a-on          그 색 바탕 위에 올릴 글자색 (흰색 또는 검정)
- *   --color-a-soft        아주 연한 바탕색
+ *   --color-a             고른 색 그대로
+ *   --color-a-on          그 색을 바탕으로 한 버튼 위의 글자색 (흰색 또는 검정)
+ *   --color-a-soft        아주 연한 바탕색 (목록 줄 등)
  *   --color-a-rgb         투명도를 줄 때 쓰는 r, g, b
- *   --color-a-shadow-rgb  그림자용으로 어둡게 한 r, g, b
+ *   --color-a-shadow-rgb  그림자용 r, g, b
  *
  * --color-mid 는 A와 B의 중간색입니다. 세계관처럼 어느 한쪽 것이 아닌 곳에 씁니다.
  * CSS(css/base.css)에는 회색으로 같은 변수가 미리 들어 있습니다.
@@ -243,57 +243,10 @@ function contrast(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-function toHsl([r, g, b]) {
-  const [rr, gg, bb] = [r / 255, g / 255, b / 255];
-  const max = Math.max(rr, gg, bb);
-  const min = Math.min(rr, gg, bb);
-  const l = (max + min) / 2;
-  if (max === min) return [0, 0, l];
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h;
-  if (max === rr) h = (gg - bb) / d + (gg < bb ? 6 : 0);
-  else if (max === gg) h = (bb - rr) / d + 2;
-  else h = (rr - gg) / d + 4;
-  return [h / 6, s, l];
-}
-
-function fromHsl([h, s, l]) {
-  if (s === 0) return [l * 255, l * 255, l * 255];
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const channel = t => {
-    let x = t;
-    if (x < 0) x += 1;
-    if (x > 1) x -= 1;
-    if (x < 1 / 6) return p + (q - p) * 6 * x;
-    if (x < 1 / 2) return q;
-    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
-    return p;
-  };
-  return [channel(h + 1 / 3), channel(h), channel(h - 1 / 3)].map(v => v * 255);
-}
-
-/*
- * 흰 바탕에서 읽히는 글자색.
- * 연한 색(파스텔)은 색감은 그대로 두고 밝기만 낮춰서, 글자가 읽힐 만큼 진하게 만듭니다.
- * (검정을 섞으면 탁한 회색빛이 되므로 밝기만 내립니다)
- */
-function readableOnWhite(rgb) {
-  if (contrast(rgb, WHITE) >= 4.5) return rgb;
-  const [h, s, l] = toHsl(rgb);
-  for (let lightness = l; lightness >= 0; lightness -= 0.01) {
-    const color = fromHsl([h, s, lightness]).map(Math.round);
-    if (contrast(color, WHITE) >= 4.5) return color;
-  }
-  return INK;
-}
-
 function paletteVars(prefix, rgb) {
   const rounded = rgb.map(Math.round);
   return {
     [`--${prefix}`]: toHex(rounded),
-    [`--${prefix}-text`]: toHex(readableOnWhite(rounded)),
     [`--${prefix}-on`]: contrast(rounded, WHITE) >= contrast(rounded, INK) ? '#ffffff' : toHex(INK),
     [`--${prefix}-soft`]: toHex(mix(rounded, WHITE, 0.9)),
     [`--${prefix}-rgb`]: rounded.join(', '),
@@ -312,5 +265,6 @@ export function applyTheme() {
 
   for (const [name, value] of Object.entries(vars)) style.setProperty(name, value);
 
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', toHex(colors[0]));
+  // 휴대폰 브라우저 위쪽 띠(주소창) 색. 어느 한 캐릭터 것이 아니므로 중간색입니다.
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', vars['--color-mid']);
 }
